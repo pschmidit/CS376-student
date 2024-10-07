@@ -189,29 +189,35 @@ namespace Assets.Serialization
         {
             switch (o)
             {
+                // write null out, literally
                 case null:
-                    throw new NotImplementedException("Fill me in");
+                    Write("null");
                     break;
 
+                // predefined function
                 case int i:
-                    throw new NotImplementedException("Fill me in");
+                    Write(i);
                     break;
 
+                // predefined function
                 case float f:
-                    throw new NotImplementedException("Fill me in");
+                    Write(f);
                     break;
 
-                // Not: don't worry about handling strings that contain quote marks
+                // Note: don't worry about handling strings that contain quote marks
+                // put quote marks around the string
                 case string s:
-                    throw new NotImplementedException("Fill me in");
+                    Write("\"" + s + "\"");
                     break;
 
+                // write "True" or "False" depending on b
                 case bool b:
-                    throw new NotImplementedException("Fill me in");
+                    Write(b ? "True" : "False");
                     break;
 
+                // predefined function
                 case IList list:
-                    throw new NotImplementedException("Fill me in");
+                    WriteList(list);
                     break;
 
                 default:
@@ -231,7 +237,35 @@ namespace Assets.Serialization
         /// <param name="o">Object to serialize</param>
         private void WriteComplexObject(object o)
         {
-            throw new NotImplementedException("Fill me in");
+            // set variables for the outputs of GetId(o)
+            var (id, isNew) = GetId(o);
+
+            // if the object isn't new, write the pound sign and the id number and return
+            if (!isNew){
+                Write("#" + id);
+                return;
+            }
+
+            // if the object is new, write "#id"
+            Write($"#{id} ");
+
+            // start writing the bracketed expression
+            WriteBracketedExpression(
+                // start with the left bracket
+                "{", 
+                // initiallize the procedure
+                () => {
+                // write the type field
+                WriteField("type", o.GetType().Name, true);
+
+                // get the rest of the fields out of the type, Public, NonPublic and Instances
+                var fields = o.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                // for each field, write that field
+                foreach(var field in fields){
+                    WriteField(field.Name, field.GetValue(o),false);
+                }
+            },"}");
         }
     }
 }

@@ -283,8 +283,10 @@ namespace Assets.Serialization
             var id = (int)ReadNumber(enclosingId);
             SkipWhitespace();
 
-            // You've got the id # of the object.  Are we done now?
-            throw new NotImplementedException("Fill me in");
+             // If the object has already been deserialized, return it.
+            if (idTable.TryGetValue(id, out object value)){
+                return value;
+            }
 
             // Assuming we aren't done, let's check to make sure there's a { next
             SkipWhitespace();
@@ -300,20 +302,24 @@ namespace Assets.Serialization
             if (hopefullyType != "type")
                 throw new Exception(
                     $"Expected type name at the beginning of complex object id {id} but instead got {typeName}");
-            var type = typeName as string;
-            if (type == null)
-                throw new Exception(
+            var type = typeName as string ?? throw new Exception(
                     $"Expected a type name (a string) in 'type: ...' expression for object id {id}, but instead got {typeName}");
 
-            // Great!  Now what?
-            throw new NotImplementedException("Fill me in");
+            // create an instance of the object from its type
+            var obj = Utilities.MakeInstance(type);
+
+            // store the object in the id table at its id index
+            idTable[id] = obj;
 
             // Read the fields until we run out of them
             while (!End && PeekChar != '}')
             {
-                var (field, value) = ReadField(id);
-                // We've got a field and a value.  Now what?
-                throw new NotImplementedException("Fill me in");
+                // get the fieldName and value from the id
+                var (field, val) = ReadField(id);
+                
+                // Set the field value using reflection
+                Utilities.SetFieldByName(obj, field, val);
+
             }
 
             if (End)
@@ -321,8 +327,8 @@ namespace Assets.Serialization
 
             GetChar();  // Swallow close bracket
 
-            // We're done.  Now what?
-            throw new NotImplementedException("Fill me in");
+            // return the deserialized object
+            return obj;
         }
 
     }
