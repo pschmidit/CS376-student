@@ -97,18 +97,27 @@ public class BarGraph : MonoBehaviour
         // then move it in range (set it to Min/Max) so the bar doesn't draw
         // outside the widget.
 
-        if(value < Min){
-            value = Min;
+        float percDisplay;
+
+        if (value < 0){
+            percDisplay = -(value/Min);
+        }
+        else {
+            percDisplay = value/Max;
+        }
+
+        if (value < Min){
+            percDisplay = -1;
             color = Color.red;
         }
         else if (value > Max){
-            value = Max;
+            percDisplay = 1;
             color = Color.red;
         }
 
         // TODO: Call SetWidthPercent to change the width of the bar and set its color
         
-        SetWidthPercent(value, color);
+        SetWidthPercent(percDisplay, color);
 
         // TODO: Update the text to read: {name} : {value}
 
@@ -212,9 +221,9 @@ public class BarGraph : MonoBehaviour
         get
         {
             // TODO: return prefab is null, set it to Resources.Load<GameObject>("BarGraph")
-
-            var prefab = Resources.Load<GameObject>("BarGraph");
-
+            if (prefab == null){
+                prefab = Resources.Load<GameObject>("BarGraph");
+            }
             // Now that prefab isn't null, we can return it.
             return prefab;
         }
